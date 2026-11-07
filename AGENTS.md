@@ -1,5 +1,9 @@
 # Using mcp-code-mode
 
+This file describes the current MCP API and Rhai sandbox behavior. Keep examples and operation guidance aligned with the bundled Notion spec and provider OpenAPI documents. Do not put provider credentials in scripts, fixtures, logs, or documentation examples; use placeholders only.
+
+Sandbox size-limit rule: [docs/rules/sandbox-response-limits.md](docs/rules/sandbox-response-limits.md).
+
 API operations are not tools. They are functions inside `execute`. The tools are `list_apis`, `search`, `describe`, and `execute`.
 
 ## 1. See which APIs are loaded

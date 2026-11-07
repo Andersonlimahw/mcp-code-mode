@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Vendored official OpenAPI specs contain documentation example values, not real credentials"
+paths = ['specs/vendor/.*']

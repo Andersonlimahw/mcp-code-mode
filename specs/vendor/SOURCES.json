@@ -19,8 +19,8 @@
       "openapi": "3.0.3",
       "info_title": "Vercel API",
       "info_version": "0.0.1",
-      "sha256": "8f0af4735fd4d359ec5040fe7f9a4d31bcbb23d2b4ef100b8f0f0cd13d15317a",
-      "note": "Vercel publishes info.version 0.0.1 on this URL. The document is the public REST API description linked from https://vercel.com/docs/rest-api."
+      "sha256": "27f6568163eea63ac905320d4f5c20ac31e6fb8d5c2922488829a321e4334609",
+      "note": "Vercel publishes info.version 0.0.1 on this URL. The document is the public REST API description linked from https://vercel.com/docs/rest-api. Local compatibility correction: getProjects.until accepts pagination.next continuation strings as well as timestamps."
     },
     {
       "adapter": "supabase",

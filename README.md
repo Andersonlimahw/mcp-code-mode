@@ -1,8 +1,69 @@
 # mcp-code-mode
 
-An MCP stdio server that implements Cloudflare-style Code Mode. One process loads Notion, GitHub, Vercel, and Supabase adapters. The model sees `list_apis`, `search`, `describe`, and `execute` instead of one tool per operation. `search` returns compact signatures. `describe` returns one operation's schemas. `execute` runs a Rhai script whose bindings call the APIs. Only the script's final value is returned.
+**Code Mode MCP server for Notion, GitHub, Vercel, and Supabase.** Instead of exposing one MCP tool per endpoint, it exposes four stable tools: `list_apis`, `search`, `describe`, and `execute`. Models discover compact API signatures, then run a Rhai script that chains API calls and returns only its final value.
 
-The pilot adapter is the Notion public REST API (`Notion-Version: 2022-06-28`): search, create page, update page, update block, append block children, create database, and update database. Auth is the `NOTION_TOKEN` environment variable.
+This reduces repeated tool definitions and intermediate workflow payloads. The measured Notion five-step workflow uses **521 `o200k_base` tokens** for one `execute` call and its final result, compared with **1,264 tokens** for five calls and results. Including tool definitions and the preceding search round-trip, the measured resident context is **1,107 vs 18,764 tokens**. These are measured with `tiktoken-rs` 0.6.0 using `o200k_base`; they are not Claude tokenizer counts or estimates. Details and methodology: [RECEIPT.md](RECEIPT.md).
+
+## Quickstart
+
+Install Rust from `rust-toolchain.toml`, then build and run:
+
+```bash
+cargo install --path crates/mcp-code-mode
+export NOTION_TOKEN=ntn_your_integration_token
+mcp-code-mode
+```
+
+Server communicates over MCP stdio; logs go to stderr. Set provider tokens listed under [environment variables](#environment-variables). Configure your client using one of these examples; replace the executable path or use the installed command as appropriate.
+
+### Claude Code
+
+```bash
+claude mcp add --transport stdio mcp-code-mode \
+  --env NOTION_TOKEN=ntn_your_integration_token \
+  -- mcp-code-mode
+```
+
+### Codex
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.mcp-code-mode]
+command = "mcp-code-mode"
+enabled = true
+
+[mcp_servers.mcp-code-mode.env]
+NOTION_TOKEN = "ntn_your_integration_token"
+```
+
+### Cursor
+
+Add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "mcp-code-mode": {
+      "command": "mcp-code-mode",
+      "env": { "NOTION_TOKEN": "ntn_your_integration_token" }
+    }
+  }
+}
+```
+
+## What it does
+
+The Notion pilot uses the public REST API version `2022-06-28`: search, page and block operations, and database operations. GitHub, Vercel, and Supabase use vendored OpenAPI descriptions. Each adapter uses bearer-token authentication. The Vercel `getProjects` binding accepts `from` continuation cursors; `pagination.next` can be passed to `from` or to `until` on the next call. Because `until` is a Rhai keyword, assign it through map indexing:
+
+```rhai
+let first = getProjects(#{ limit: 20, teamId: "team_example" });
+let next_args = #{ limit: 20, teamId: "team_example" };
+next_args["until"] = first.pagination.next;
+let second = getProjects(next_args);
+```
+
+Use `teamId` or `slug` to scope project requests to a team.
 
 ## Tools
 
@@ -41,7 +102,7 @@ let page = create_page(#{
 
 SQLite (`rusqlite`, bundled) stores the spec index and a TTL cache of successful GET/HEAD responses. POST, PATCH, PUT, and DELETE are not cached.
 
-## Run
+## Build, tests, and Notion live smoke
 
 Rust is pinned in `rust-toolchain.toml` (1.99.1) because current crates require it.
 
@@ -71,7 +132,7 @@ cargo run --bin notion-smoke
 
 If either variable is missing, `notion-smoke` exits before it calls Notion. When both are set it creates a page under that parent, edits the page, creates a database under the page, edits the database, and prints an `o200k_base` receipt of the real response bodies versus the script's final value.
 
-## Configuration
+## Environment variables
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -90,50 +151,24 @@ If either variable is missing, `notion-smoke` exits before it calls Notion. When
 | `CODE_MODE_CACHE_TTL` | `60` | Seconds. `0` disables the response cache |
 | `CODE_MODE_HTTP_TIMEOUT_SECS` | `20` | Per-request timeout |
 | `CODE_MODE_MAX_CALLS` | `32` | HTTP calls allowed in one script |
+| `CODE_MODE_MAX_STRING_SIZE` | `200000` | Maximum configured Rhai string size in characters |
+| `CODE_MODE_MAX_RESPONSE_SIZE` | `5000000` | Maximum serialized API response size in bytes injected into Rhai |
 | `CODE_MODE_DEBUG` | unset | `1` logs method and path to stderr |
 
 The embedded spec is `specs/notion-2022-06-28.json`. Notion's hosted MCP server (`@notionhq/notion-mcp-server` 2.6.1) speaks the 2025-09-03 data-source API instead. This pilot follows the database endpoints from the 2022-06-28 public REST API, which is what `create database` / `update database` map to. Point `CODE_MODE_SPEC` at another document to load a different surface.
 
-## Claude Code
+## Limitations
 
-```bash
-claude mcp add --transport stdio mcp-code-mode \
-  --env NOTION_TOKEN=ntn_your_integration_token \
-  -- mcp-code-mode
-```
+- This server currently uses bearer-token REST adapters. It does not implement OAuth flows or provider-specific interactive login.
+- Notion spec intentionally follows `2022-06-28` database endpoints; newer Notion data-source operations are not the same API surface.
+- Vendored GitHub, Vercel, and Supabase OpenAPI files can lag upstream changes. `specs/vendor/SOURCES.json` records source and version metadata.
+- Rhai has no filesystem access; scripts can call only loaded API bindings. A configurable per-script HTTP call limit and bounded runtime sizes apply.
+- The token receipt measures `o200k_base`, not Claude or Cursor model tokenizers. See [RECEIPT.md](RECEIPT.md) for scope and caveats.
 
-`mcp-code-mode` must be on `PATH` (`cargo install --path crates/mcp-code-mode` from this repo).
+## Contributing and security
 
-## Codex
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and [SECURITY.md](SECURITY.md) for vulnerability reporting. Repository-specific agent guidance is in [AGENTS.md](AGENTS.md).
 
-`~/.codex/config.toml`:
+## Credits
 
-```toml
-[mcp_servers.mcp-code-mode]
-command = "mcp-code-mode"
-enabled = true
-
-[mcp_servers.mcp-code-mode.env]
-NOTION_TOKEN = "ntn_your_integration_token"
-```
-
-## Cursor
-
-`~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "mcp-code-mode": {
-      "command": "mcp-code-mode",
-      "env": {
-        "NOTION_TOKEN": "ntn_your_integration_token"
-      }
-    }
-  }
-}
-```
-
-## For agents
-
-Read [AGENTS.md](AGENTS.md). To move another MCP server or HTTP API onto this process, use the `mcp-code-mode` skill in [skill/SKILL.md](skill/SKILL.md).
+Created by [Anderson Lima](https://lemon.dev.br). Source: [github.com/Andersonlimahw/mcp-code-mode](https://github.com/Andersonlimahw/mcp-code-mode).
