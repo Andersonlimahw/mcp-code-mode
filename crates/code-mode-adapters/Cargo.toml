@@ -1,0 +1,17 @@
+[package]
+name = "code-mode-adapters"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "ApiAdapter trait, generic OpenAPI HTTP adapter, and the Notion pilot"
+
+[dependencies]
+code-mode-core.workspace = true
+code-mode-index.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+ureq.workspace = true
+
+[dev-dependencies]
+code-mode-core.workspace = true

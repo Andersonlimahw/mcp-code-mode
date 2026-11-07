@@ -1,0 +1,12 @@
+{
+  "package": "github/github-mcp-server",
+  "version": "2.1.0",
+  "published": "2026-11-03",
+  "command": "github-mcp-server stdio",
+  "toolsets": "default (binary default; no --toolsets flag)",
+  "protocolVersion": "2024-11-05",
+  "capturedOn": "2026-11-07",
+  "method": "Ran the v2.1.0 Linux x86_64 release over stdio with a dummy GITHUB_PERSONAL_ACCESS_TOKEN. The server warned that scope filtering was skipped because the token was invalid, then returned tools/list. Exact result.tools bytes are stored.",
+  "toolCount": 46,
+  "bytes": 126635
+}

@@ -1,0 +1,5 @@
+/target/
+**/*.db
+.cache/
+*.sqlite
+*.sqlite3

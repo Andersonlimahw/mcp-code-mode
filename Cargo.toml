@@ -1,0 +1,34 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/code-mode-core",
+    "crates/code-mode-index",
+    "crates/code-mode-sandbox",
+    "crates/code-mode-adapters",
+    "crates/code-mode-transport",
+    "crates/mcp-code-mode",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+anyhow = "1"
+code-mode-adapters = { path = "crates/code-mode-adapters" }
+code-mode-core = { path = "crates/code-mode-core" }
+code-mode-index = { path = "crates/code-mode-index" }
+code-mode-sandbox = { path = "crates/code-mode-sandbox" }
+code-mode-transport = { path = "crates/code-mode-transport" }
+hex = "0.4"
+rhai = { version = "1.21", features = ["sync"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+thiserror = "1"
+tiktoken-rs = "0.6"
+ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
+wiremock = "0.6"
+tokio = { version = "1", features = ["macros", "rt"] }

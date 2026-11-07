@@ -1,0 +1,11 @@
+{
+  "package": "@supabase/mcp-server-supabase",
+  "version": "0.16.1",
+  "repository": "https://github.com/supabase/mcp",
+  "command": "node dist/cli.js",
+  "protocolVersion": "2024-11-05",
+  "capturedOn": "2026-11-07",
+  "method": "Ran @supabase/mcp-server-supabase@0.16.1 over stdio with a dummy SUPABASE_ACCESS_TOKEN. Exact result.tools bytes are stored.",
+  "toolCount": 36,
+  "bytes": 33130
+}

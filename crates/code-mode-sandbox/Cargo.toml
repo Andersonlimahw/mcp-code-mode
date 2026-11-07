@@ -1,0 +1,12 @@
+[package]
+name = "code-mode-sandbox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Rhai sandbox that exposes API operations as script bindings"
+
+[dependencies]
+code-mode-core.workspace = true
+rhai.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

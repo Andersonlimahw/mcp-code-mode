@@ -1,0 +1,13 @@
+{
+  "package": "@notionhq/notion-mcp-server",
+  "version": "2.6.1",
+  "bin": "bin/cli.mjs",
+  "protocolVersion": "2024-11-05",
+  "serverInfo": {
+    "name": "Notion API",
+    "version": "1.0.0"
+  },
+  "toolCount": 24,
+  "capturedOn": "2026-11-07",
+  "method": "Ran the published npm package @notionhq/notion-mcp-server@2.6.1 stdio CLI. Sent initialize (protocol 2024-11-05) and tools/list. Stored the exact result.tools array bytes from the tools/list response line, without re-serialization."
+}

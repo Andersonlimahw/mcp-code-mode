@@ -1,0 +1,615 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Notion public REST API (pilot)",
+    "version": "2022-06-28",
+    "description": "Subset used by the mcp-code-mode Notion adapter: search, pages, blocks, and databases. Send Notion-Version 2022-06-28."
+  },
+  "servers": [
+    {
+      "url": "https://api.notion.com"
+    }
+  ],
+  "paths": {
+    "/v1/search": {
+      "post": {
+        "operationId": "search",
+        "summary": "Search pages and databases",
+        "description": "Search the workspace by title. Returns pages and databases the integration can access.",
+        "tags": ["Search"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matching pages and databases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pages": {
+      "post": {
+        "operationId": "create_page",
+        "summary": "Create a page",
+        "description": "Create a page under a parent page or as a row in a database.",
+        "tags": ["Pages"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pages/{page_id}": {
+      "patch": {
+        "operationId": "update_page",
+        "summary": "Update a page",
+        "description": "Update page properties, icon, cover, or archived state. page_id is a path parameter.",
+        "tags": ["Pages"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/blocks/{block_id}": {
+      "patch": {
+        "operationId": "update_block",
+        "summary": "Update a block",
+        "description": "Update a block's type-specific content or archive it. block_id is a path parameter. A page id is also a block id.",
+        "tags": ["Blocks"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BlockId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBlockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated block",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Block"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/blocks/{block_id}/children": {
+      "patch": {
+        "operationId": "append_block_children",
+        "summary": "Append block children",
+        "description": "Append child blocks to a parent block. Use the page id as block_id to add content to a page.",
+        "tags": ["Blocks"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BlockId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppendChildrenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The appended children",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/databases": {
+      "post": {
+        "operationId": "create_database",
+        "summary": "Create a database",
+        "description": "Create a database under a parent page, with a title and property schema.",
+        "tags": ["Databases"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDatabaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/databases/{database_id}": {
+      "patch": {
+        "operationId": "update_database",
+        "summary": "Update a database",
+        "description": "Update a database title, description, or property schema. database_id is a path parameter.",
+        "tags": ["Databases"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DatabaseId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDatabaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "PageId": {
+        "name": "page_id",
+        "in": "path",
+        "required": true,
+        "description": "Page UUID, with or without dashes.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "BlockId": {
+        "name": "block_id",
+        "in": "path",
+        "required": true,
+        "description": "Block UUID. A page id is valid.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "DatabaseId": {
+        "name": "database_id",
+        "in": "path",
+        "required": true,
+        "description": "Database UUID.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "RichText": {
+        "type": "object",
+        "description": "Rich text item. Plain text uses type text.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["text"]
+          },
+          "text": {
+            "type": "object",
+            "required": ["content"],
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "link": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["text"]
+      },
+      "Parent": {
+        "type": "object",
+        "description": "Parent of a page or database.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["page_id", "database_id", "workspace"]
+          },
+          "page_id": {
+            "type": "string"
+          },
+          "database_id": {
+            "type": "string"
+          }
+        }
+      },
+      "SearchRequest": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Title substring. Omit to list everything the token can see."
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["page", "database"]
+              },
+              "property": {
+                "type": "string",
+                "enum": ["object"]
+              }
+            }
+          },
+          "sort": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "type": "string",
+                "enum": ["ascending", "descending"]
+              },
+              "timestamp": {
+                "type": "string",
+                "enum": ["last_edited_time"]
+              }
+            }
+          },
+          "start_cursor": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "next_cursor": {},
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": ["results"]
+      },
+      "CreatePageRequest": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": ["parent", "properties"],
+            "properties": {
+              "parent": {
+                "$ref": "#/components/schemas/Parent"
+              },
+              "properties": {
+                "type": "object",
+                "description": "Property values keyed by property name or id. For a child page the title property is usually `title`."
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Block"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "UpdatePageRequest": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "object",
+            "description": "Property values to merge into the page."
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "icon": {
+            "type": "object"
+          },
+          "cover": {
+            "type": "object"
+          }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "required": ["id", "object"],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["page"]
+          },
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/Parent"
+          },
+          "properties": {
+            "type": "object"
+          }
+        }
+      },
+      "UpdateBlockRequest": {
+        "type": "object",
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "paragraph": {
+            "type": "object",
+            "properties": {
+              "rich_text": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RichText"
+                }
+              }
+            }
+          },
+          "heading_1": {
+            "type": "object"
+          },
+          "to_do": {
+            "type": "object"
+          }
+        }
+      },
+      "AppendChildrenRequest": {
+        "type": "object",
+        "required": ["children"],
+        "properties": {
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            }
+          },
+          "after": {
+            "type": "string",
+            "description": "Optional block id to insert after."
+          }
+        }
+      },
+      "Block": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["block"]
+          },
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "paragraph": {
+            "type": "object"
+          },
+          "has_children": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BlockList": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["list"]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateDatabaseRequest": {
+        "type": "object",
+        "required": ["parent", "properties"],
+        "properties": {
+          "parent": {
+            "$ref": "#/components/schemas/Parent"
+          },
+          "title": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "properties": {
+            "type": "object",
+            "description": "Column schema keyed by property name. Include a title property, for example {\"Name\": {\"title\": {}}}."
+          },
+          "is_inline": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateDatabaseRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "properties": {
+            "type": "object",
+            "description": "Property schema updates. A null value removes a property."
+          }
+        }
+      },
+      "Database": {
+        "type": "object",
+        "required": ["id", "object"],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": ["database"]
+          },
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RichText"
+            }
+          },
+          "properties": {
+            "type": "object"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/Parent"
+          }
+        }
+      }
+    }
+  }
+}

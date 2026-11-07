@@ -1,0 +1,36 @@
+{
+  "fetched": "2026-11-07",
+  "specs": [
+    {
+      "adapter": "github",
+      "file": "specs/vendor/github-rest-openapi.json",
+      "source": "https://raw.githubusercontent.com/github/rest-api-description/df36add4edaeda9577169ce42ad4b2b756191852/descriptions/api.github.com/api.github.com.json",
+      "git_commit": "df36add4edaeda9577169ce42ad4b2b756191852",
+      "git_commit_date": "2026-11-07T02:39:29Z",
+      "openapi": "3.0.3",
+      "info_title": "GitHub v3 REST API",
+      "info_version": "1.1.4",
+      "sha256": "b8973e498305c0e45891c45a109901f9caf6ecbf8ad0e53404a7947c503e120f"
+    },
+    {
+      "adapter": "vercel",
+      "file": "specs/vendor/vercel-rest-openapi.json",
+      "source": "https://vercel.com/openapi.json",
+      "openapi": "3.0.3",
+      "info_title": "Vercel API",
+      "info_version": "0.0.1",
+      "sha256": "8f0af4735fd4d359ec5040fe7f9a4d31bcbb23d2b4ef100b8f0f0cd13d15317a",
+      "note": "Vercel publishes info.version 0.0.1 on this URL. The document is the public REST API description linked from https://vercel.com/docs/rest-api."
+    },
+    {
+      "adapter": "supabase",
+      "file": "specs/vendor/supabase-management-openapi.json",
+      "source": "https://api.supabase.com/api/v1-json",
+      "docs": "https://supabase.com/docs/reference/api/introduction",
+      "openapi": "3.0.0",
+      "info_title": "Supabase API (v1)",
+      "info_version": "1.0.0",
+      "sha256": "fc33202345e876c03ac9a725d702e5d792c83bb272225ae9a83ef90fc1ef453b"
+    }
+  ]
+}
