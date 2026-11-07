@@ -121445,12 +121445,12 @@
           },
           {
             "name": "until",
-            "description": "Query only projects updated before this JavaScript timestamp.",
+            "description": "Query only projects updated before this JavaScript timestamp, or continue pagination using pagination.next.",
             "in": "query",
             "schema": {
-              "description": "Query only projects updated before this JavaScript timestamp.",
-              "type": "number",
-              "example": 1540095775951
+              "description": "Query only projects updated before this JavaScript timestamp, or continue pagination using pagination.next.",
+              "type": "string",
+              "example": "pagination.next"
             }
           },
           {

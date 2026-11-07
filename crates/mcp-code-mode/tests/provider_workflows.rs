@@ -5,7 +5,7 @@ use mcp_code_mode::{
 use serde_json::{json, Value};
 use std::sync::Arc;
 use std::time::Duration;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param, query_param_is_missing};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn app(adapter: &dyn mcp_code_mode::ApiAdapter) -> CodeModeApp {
@@ -157,6 +157,112 @@ async fn vercel_three_step_workflow() {
     let body: Value = serde_json::from_slice(&requests[2].body).unwrap();
     assert!(body.get("idOrName").is_none());
     assert_eq!(body["name"], "code-mode-edited");
+}
+
+#[tokio::test]
+async fn vercel_projects_follow_pagination_cursor_and_team_scope() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/v10/projects"))
+        .and(query_param("limit", "20"))
+        .and(query_param("teamId", "team_demo"))
+        .and(query_param_is_missing("until"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(
+            r#"{"projects":[{"id":"prj_first"}],"pagination":{"next":"cursor/second page"}}"#,
+            "application/json",
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/v10/projects"))
+        .and(query_param("limit", "20"))
+        .and(query_param("teamId", "team_demo"))
+        .and(query_param("until", "cursor/second page"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(
+            r#"{"projects":[{"id":"prj_second"}],"pagination":{"next":"cursor/third page"}}"#,
+            "application/json",
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/v10/projects"))
+        .and(query_param("limit", "20"))
+        .and(query_param("slug", "team-demo"))
+        .and(query_param("from", "cursor/third page"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(
+            r#"{"projects":[{"id":"prj_third"}],"pagination":{"next":null}}"#,
+            "application/json",
+        ))
+        .mount(&server)
+        .await;
+
+    let adapter = VercelAdapter::new("vercel_test", server.uri()).unwrap();
+    let app = app(&adapter);
+    let code = r#"
+        let first = getProjects(#{ limit: 20, teamId: "team_demo" });
+        let cursor = first.pagination.next;
+        let next_args = #{ limit: 20, teamId: "team_demo" };
+        next_args["until"] = cursor;
+        let second = getProjects(next_args);
+        let from_args = #{ limit: 20, slug: "team-demo", from: second.pagination.next };
+        let third = getProjects(from_args);
+        #{ first: first.projects[0].id, second: second.projects[0].id, third: third.projects[0].id }
+    "#;
+    let result = app.call_tool("execute", json!({"code": code})).unwrap();
+    assert!(!result.is_error, "{}", result.content);
+    let value: Value = serde_json::from_str(&result.content).unwrap();
+    assert_eq!(value["first"], "prj_first");
+    assert_eq!(value["second"], "prj_second");
+    assert_eq!(value["third"], "prj_third");
+    let requests = server.received_requests().await.unwrap();
+    assert_eq!(requests.len(), 3);
+    for request in &requests[..2] {
+        assert_eq!(
+            request
+                .url
+                .query_pairs()
+                .find(|(key, _)| key == "limit")
+                .unwrap()
+                .1,
+            "20"
+        );
+        assert_eq!(
+            request
+                .url
+                .query_pairs()
+                .find(|(key, _)| key == "teamId")
+                .unwrap()
+                .1,
+            "team_demo"
+        );
+    }
+    assert_eq!(
+        requests[1]
+            .url
+            .query_pairs()
+            .find(|(key, _)| key == "until")
+            .unwrap()
+            .1,
+        "cursor/second page"
+    );
+    assert_eq!(
+        requests[2]
+            .url
+            .query_pairs()
+            .find(|(key, _)| key == "from")
+            .unwrap()
+            .1,
+        "cursor/third page"
+    );
+    assert_eq!(
+        requests[2]
+            .url
+            .query_pairs()
+            .find(|(key, _)| key == "slug")
+            .unwrap()
+            .1,
+        "team-demo"
+    );
 }
 
 #[tokio::test]
